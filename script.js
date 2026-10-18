@@ -1,20 +1,29 @@
 // ==========================================
-// Gemeinsame Funktionen für beide Seiten
+// 1. SUPABASE KONFIGURATION (Hier deine Daten eintragen!)
+// ==========================================
+const SUPABASE_URL = 'https://kolmuskfcherwvfthorc.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_gno7z0y4GFP37-Ii_Vw70A_wqGyeDG2';
+
+// Initialisierung des Supabase-Clients
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+
+// ==========================================
+// Gemeinsame Funktionen (Daten aus Supabase laden)
 // ==========================================
 
-// Holt die Bewerbungen aus dem Local Storage. Wenn keine da sind, wird ein leeres Array erstellt.
-function getBewerbungen() {
-    let speicher = localStorage.getItem('bewerbungen');
-    if (speicher === null) {
-        return [];
-    } else {
-        return JSON.parse(speicher);
-    }
-}
+// Holt alle Bewerbungen aus der Supabase-Datenbank (asynchron)
+async function getBewerbungen() {
+    let { data, error } = await supabaseClient
+        .from('bewerbungen')
+        .select('*')
+        .order('datum', { ascending: false }); // Neueste zuerst
 
-// Speichert das Array mit Bewerbungen wieder im Local Storage
-function saveBewerbungen(bewerbungenArray) {
-    localStorage.setItem('bewerbungen', JSON.stringify(bewerbungenArray));
+    if (error) {
+        console.error('Fehler beim Laden:', error);
+        return [];
+    }
+    return data || [];
 }
 
 
@@ -22,13 +31,13 @@ function saveBewerbungen(bewerbungenArray) {
 // Logik für die Startseite (index.html)
 // ==========================================
 
-// Diese Funktion baut das HTML für die Liste auf
-function renderListe() {
-    // Prüfen, ob wir auf der Startseite sind
+async function renderListe() {
     const listenContainer = document.getElementById('bewerbungs-liste');
     if (!listenContainer) return; 
 
-    const bewerbungen = getBewerbungen();
+    listenContainer.innerHTML = '<p>Lade Bewerbungen aus der Cloud...</p>';
+
+    const bewerbungen = await getBewerbungen();
     listenContainer.innerHTML = ''; 
 
     if (bewerbungen.length === 0) {
@@ -36,31 +45,25 @@ function renderListe() {
         return;
     }
 
-    // Für jede Bewerbung im Array eine HTML-Karte erstellen
-    bewerbungen.forEach((bew, index) => {
-        
+    bewerbungen.forEach((bew) => {
         let linkHtml = bew.link ? `<a href="${bew.link}" target="_blank">Zur Anzeige</a>` : 'Kein Link';
         let notizenHtml = bew.notizen ? bew.notizen.replace(/\n/g, '<br>') : '-';
 
-        // NEU: Datum von YYYY-MM-DD in DD.MM.YYYY umwandeln
         let anzeigeDatum = bew.datum; 
         if (bew.datum) {
-            // split('-') zerschneidet z.B. "2026-10-18" in ["2026", "10", "18"]
-            // reverse() dreht es um in ["18", "10", "2026"]
-            // join('.') klebt es zusammen zu "18.10.2026"
             anzeigeDatum = bew.datum.split('-').reverse().join('.');
         }
 
-        // Die HTML-Struktur der Karte (hier wurde bew.datum durch anzeigeDatum ersetzt)
+        // Wir nutzen hier die 'id' aus der Datenbank statt des Array-Indexes
         let karte = `
             <div class="bewerbung-eintrag">
                 <h3>${bew.firma} - ${bew.jobtitel}</h3>
                 <p><strong>Bewerbungsdatum:</strong> ${anzeigeDatum}</p>
-                <p><strong>Plattform:</strong> ${bew.plattform}</p>
+                <p><strong>Plattform:</strong> ${bew.plattform || '-'}</p>
                 <p><strong>Link:</strong> ${linkHtml}</p>
                 
                 <p><strong>Status:</strong> 
-                    <select onchange="ändereStatus(${index}, this.value)">
+                    <select onchange="ändereStatus('${bew.id}', this.value)">
                         <option value="Offen" ${bew.status === 'Offen' ? 'selected' : ''}>Offen</option>
                         <option value="Gespräch" ${bew.status === 'Gespräch' ? 'selected' : ''}>Gespräch</option>
                         <option value="Zusage" ${bew.status === 'Zusage' ? 'selected' : ''}>Zusage</option>
@@ -70,37 +73,48 @@ function renderListe() {
                 
                 <p><strong>Notizen:</strong><br> ${notizenHtml}</p>
                 
-                <button onclick="bearbeiteBewerbung(${index})">Bearbeiten</button>
-                <button onclick="löscheBewerbung(${index})">Löschen</button>
+                <button onclick="bearbeiteBewerbung('${bew.id}')">Bearbeiten</button>
+                <button onclick="löscheBewerbung('${bew.id}')">Löschen</button>
             </div>
         `;
         listenContainer.innerHTML += karte;
     });
 }
-// Wird aufgerufen, wenn im Dropdown ein neuer Status gewählt wird
-function ändereStatus(index, neuerStatus) {
-    let bewerbungen = getBewerbungen();
-    bewerbungen[index].status = neuerStatus;
-    saveBewerbungen(bewerbungen);
-}
 
-// Wird aufgerufen, wenn "Löschen" geklickt wird
-function löscheBewerbung(index) {
-    let bewerbungen = getBewerbungen();
-    let bestätigung = confirm(`Möchtest du die Bewerbung bei "${bewerbungen[index].firma}" wirklich löschen?`);
-    
-    if (bestätigung) {
-        bewerbungen.splice(index, 1); // Entfernt 1 Element an der Position 'index'
-        saveBewerbungen(bewerbungen);
-        renderListe(); // Liste sofort neu laden
+// Status direkt in der Datenbank aktualisieren
+async function ändereStatus(id, neuerStatus) {
+    const { error } = await supabaseClient
+        .from('bewerbungen')
+        .update({ status: neuerStatus })
+        .eq('id', id);
+
+    if (error) {
+        console.error('Fehler beim Status-Ändern:', error);
+        alert('Fehler beim Aktualisieren des Status.');
     }
 }
 
-// Wird aufgerufen, wenn "Bearbeiten" geklickt wird
-function bearbeiteBewerbung(index) {
-    // Wir speichern den Index der zu bearbeitenden Bewerbung temporär
-    sessionStorage.setItem('bearbeitenIndex', index);
-    // Und leiten dann auf die Formular-Seite weiter
+// Bewerbung löschen
+async function löscheBewerbung(id) {
+    let bestätigung = confirm('Möchtest du diese Bewerbung wirklich löschen?');
+    if (!bestätigung) return;
+
+    const { error } = await supabaseClient
+        .from('bewerbungen')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error('Fehler beim Löschen:', error);
+        alert('Fehler beim Löschen.');
+    } else {
+        renderListe(); // Liste neu laden
+    }
+}
+
+// Weiterleitung zum Bearbeiten
+function bearbeiteBewerbung(id) {
+    sessionStorage.setItem('bearbeitenId', id);
     window.location.href = 'neu.html';
 }
 
@@ -109,38 +123,38 @@ function bearbeiteBewerbung(index) {
 // Logik für die Formular-Seite (neu.html)
 // ==========================================
 
-function initFormular() {
-    // Prüfen, ob wir auf der Formular-Seite sind
+async function initFormular() {
     const formular = document.getElementById('bewerbungs-formular');
     if (!formular) return;
 
-    // Prüfen, ob wir im Bearbeiten-Modus sind
-    const bearbeitenIndex = sessionStorage.getItem('bearbeitenIndex');
+    const bearbeitenId = sessionStorage.getItem('bearbeitenId');
     
-    if (bearbeitenIndex !== null) {
-        // Formular-Überschrift anpassen (optional, falls vorhanden)
+    if (bearbeitenId !== null) {
         const ueberschrift = document.querySelector('main h2');
         if(ueberschrift) ueberschrift.innerText = "Bewerbung bearbeiten";
 
-        // Daten der zu bearbeitenden Bewerbung holen
-        const bewerbungen = getBewerbungen();
-        const bew = bewerbungen[bearbeitenIndex];
+        // Einzelnen Datensatz aus Supabase holen
+        const { data, error } = await supabaseClient
+            .from('bewerbungen')
+            .select('*')
+            .eq('id', bearbeitenId)
+            .single();
 
-        // Formularfelder mit den alten Daten füllen
-        document.getElementById('firma').value = bew.firma;
-        document.getElementById('jobtitel').value = bew.jobtitel;
-        document.getElementById('datum').value = bew.datum;
-        document.getElementById('plattform').value = bew.plattform || '';
-        document.getElementById('link').value = bew.link || '';
-        document.getElementById('status').value = bew.status;
-        document.getElementById('notizen').value = bew.notizen || '';
+        if (data) {
+            document.getElementById('firma').value = data.firma || '';
+            document.getElementById('jobtitel').value = data.jobtitel || '';
+            document.getElementById('datum').value = data.datum || '';
+            document.getElementById('plattform').value = data.plattform || '';
+            document.getElementById('link').value = data.link || '';
+            document.getElementById('status').value = data.status || 'Offen';
+            document.getElementById('notizen').value = data.notizen || '';
+        }
     }
 
-    // Was passiert, wenn das Formular abgeschickt wird?
-    formular.addEventListener('submit', function(event) {
-        event.preventDefault(); // Verhindert das Standard-Neuladen der Seite
+    // Formular absenden (Speichern oder Aktualisieren)
+    formular.addEventListener('submit', async function(event) {
+        event.preventDefault(); 
 
-        // Neue Daten aus den Feldern auslesen
         let neuerEintrag = {
             firma: document.getElementById('firma').value,
             jobtitel: document.getElementById('jobtitel').value,
@@ -151,31 +165,34 @@ function initFormular() {
             notizen: document.getElementById('notizen').value
         };
 
-        let bewerbungen = getBewerbungen();
+        if (bearbeitenId !== null) {
+            // Update in Supabase
+            const { error } = await supabaseClient
+                .from('bewerbungen')
+                .update(neuerEintrag)
+                .eq('id', bearbeitenId);
 
-        if (bearbeitenIndex !== null) {
-            // Wir überschreiben die bestehende Bewerbung
-            bewerbungen[bearbeitenIndex] = neuerEintrag;
-            sessionStorage.removeItem('bearbeitenIndex'); // Bearbeitungsmodus beenden
+            sessionStorage.removeItem('bearbeitenId');
+            if (error) console.error('Fehler beim Update:', error);
         } else {
-            // Es ist eine komplett neue Bewerbung, also ans Array anhängen
-            bewerbungen.push(neuerEintrag);
-        }
+            // Neu einfügen in Supabase
+            const { error } = await supabaseClient
+                .from('bewerbungen')
+                .insert([neuerEintrag]);
 
-        saveBewerbungen(bewerbungen);
+            if (error) console.error('Fehler beim Einfügen:', error);
+        }
         
-        // Nach dem Speichern zurück zur Startseite leiten
         window.location.href = 'index.html';
     });
 }
 
 
 // ==========================================
-// Start der Skripte
+// Start der Skripte beim Laden der Seite
 // ==========================================
 
-// Wenn die Seite komplett geladen ist, führen wir die Funktionen aus
 window.onload = function() {
-    renderListe();    // Versucht die Liste zu rendern (passiert nur auf index.html)
-    initFormular();   // Versucht das Formular zu initialisieren (passiert nur auf neu.html)
+    renderListe();    
+    initFormular();   
 };
