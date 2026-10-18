@@ -4,10 +4,12 @@
 const SUPABASE_URL = 'https://kolmuskfcherwvfthorc.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_gno7z0y4GFP37-Ii_Vw70A_wqGyeDG2';
 
-// Initialisierung des Supabase-Clients
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-
+// Initialisierung mit deaktivierter Sitzungs-Speicherung (verhindert Browser-Blockaden)
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+        persistSession: false
+    }
+});
 // ==========================================
 // Gemeinsame Funktionen (Daten aus Supabase laden)
 // ==========================================
@@ -15,7 +17,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // Holt alle Bewerbungen aus der Supabase-Datenbank (asynchron)
 async function getBewerbungen() {
     let { data, error } = await supabaseClient
-        .from('Bewerbungen')
+        .from('bewerbungen')
         .select('*')
         .order('datum', { ascending: false }); // Neueste zuerst
 
