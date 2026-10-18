@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neue Bewerbung eintragen</title>
+    <!-- Verlinkung zur CSS-Datei -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Navigationsleiste -->
+    <nav class="navbar">
+        <div class="nav-logo">
+            <a href="index.html">Bewerbungs-Tracker</a>
+        </div>
+        <div class="nav-links">
+            <a href="neu.html" class="nav-button">+ Neue Bewerbung</a>
+        </div>
+    </nav>
+
+    <!-- Hauptbereich: Das Eingabeformular -->
+    <main class="container">
+        <h2>Neue Bewerbung anlegen</h2>
+        
+        <form id="bewerbungs-formular" autocomplete="off">
+            <div>
+                <label for="firma">Name der Firma:</label>
+                <input type="text" id="firma" name="firma" required>
+            </div>
+
+            <div>
+                <label for="jobtitel">Jobtitel (z. B. IT Developer):</label>
+                <input type="text" id="jobtitel" name="jobtitel" required>
+            </div>
+
+            <div>
+                <label for="datum">Bewerbungsdatum:</label>
+                <input type="date" id="datum" name="datum" required>
+            </div>
+
+            <div>
+                <label for="plattform">Plattform (wo beworben?):</label>
+                <input type="text" id="plattform" name="plattform">
+            </div>
+
+            <div>
+                <label for="link">Link zur Anzeige:</label>
+                <input type="url" id="link" name="link">
+            </div>
+
+            <div>
+                <label for="status">Aktueller Status:</label>
+                <select id="status" name="status">
+                    <option value="Offen">Offen</option>
+                    <option value="Gespräch">Gespräch</option>
+                    <option value="Zusage">Zusage</option>
+                    <option value="Abgelehnt">Abgelehnt</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="notizen">Notizen:</label>
+                <textarea id="notizen" name="notizen" rows="4"></textarea>
+            </div>
+
+            <div class="form-buttons">
+                <button type="submit" class="btn-speichern">Speichern</button>
+                <a href="index.html">
+                    <button type="button" class="btn-abbrechen">Abbrechen</button>
+                </a>
+            </div>
+        </form>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

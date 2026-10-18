@@ -1,0 +1,162 @@
+/* Grundlegendes Design für die ganze Seite */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f7f6; /* Helles Grau-Blau als Hintergrund */
+    color: #333;
+    margin: 0; /* Wichtig: Rand auf 0, damit die Navbar bündig abschließt */
+    padding: 0;
+}
+
+/* Container für den Hauptinhalt, damit er zentriert bleibt */
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* =========================================
+   Navigationsleiste (Navbar) - Festklebend
+   ========================================= */
+.navbar {
+    background-color: #343a40; /* Dunkelgrauer Hintergrund */
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    
+    /* Macht die Leiste festklebend am oberen Rand */
+    position: sticky;
+    top: 0;
+    z-index: 1000; /* Sorgt dafür, dass sie über allem anderen liegt */
+    width: 100%;
+    box-sizing: border-box; /* Verhindert, dass das Padding die Breite vergrößert */
+}
+
+.nav-logo a {
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.nav-button {
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.nav-button:hover {
+    background-color: #218838;
+}
+
+/* =========================================
+   Design für die Startseite (index.html)
+   ========================================= */
+.bewerbung-eintrag {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.bewerbung-eintrag h3 {
+    margin-top: 0;
+    color: #0056b3;
+}
+
+.bewerbung-eintrag button {
+    padding: 8px 15px;
+    margin-right: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.bewerbung-eintrag button:first-of-type {
+    background-color: #ffc107; /* Gelb für Bearbeiten */
+    color: black;
+}
+
+.bewerbung-eintrag button:last-of-type {
+    background-color: #dc3545; /* Rot für Löschen */
+    color: white;
+}
+
+/* =========================================
+   Design für die Formular-Seite (neu.html)
+   ========================================= */
+#bewerbungs-formular {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+#bewerbungs-formular div {
+    margin-bottom: 15px;
+}
+
+label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="url"],
+select,
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+/* Buttons im Formular */
+.form-buttons {
+    margin-top: 20px;
+}
+
+.btn-speichern {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+.btn-speichern:hover {
+    background-color: #218838;
+}
+
+.btn-abbrechen {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-abbrechen:hover {
+    background-color: #5a6268;
+}
+
+a {
+    text-decoration: none;
+}
