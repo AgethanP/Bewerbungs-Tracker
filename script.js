@@ -15,7 +15,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // Holt alle Bewerbungen aus der Supabase-Datenbank (asynchron)
 async function getBewerbungen() {
     let { data, error } = await supabaseClient
-        .from('bewerbungen')
+        .from('Bewerbungen')
         .select('*')
         .order('datum', { ascending: false }); // Neueste zuerst
 
